@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SROAD</title>
+<link rel="icon" href="/icon.png">
+<link rel="stylesheet" href="/css/app.css">
+</head>
+<body data-mode="vocal">
+<div class="app" id="app">
+  <header class="top">
+    <div class="brand">
+      <svg width="34" height="34" viewBox="0 0 34 34" aria-hidden="true">
+        <rect x="2" y="12" width="4.6" height="12" rx="2.3" fill="#ff5c8a"/>
+        <rect x="8.6" y="6" width="4.6" height="22" rx="2.3" fill="#8a6cff"/>
+        <rect x="14.7" y="2" width="4.6" height="30" rx="2.3" fill="#2bc5e8"/>
+        <rect x="20.8" y="8" width="4.6" height="18" rx="2.3" fill="#ffb020"/>
+        <rect x="27.4" y="13" width="4.6" height="10" rx="2.3" fill="#2fd39a"/>
+      </svg>
+      <div>
+        <div class="brand-name">SROAD</div>
+        <div class="brand-sub">AI 음원 분리 · 편집 스튜디오</div>
+      </div>
+    </div>
+    <nav class="tabs" id="tabs">
+      <button class="tab on" data-mode="vocal"><span class="tl">ROAD Vocal</span><span class="tk">보컬 추출</span></button>
+      <button class="tab" data-mode="track"><span class="tl">ROAD Track</span><span class="tk">악기 분리</span></button>
+      <button class="tab" data-mode="pitch"><span class="tl">ROAD Pitch</span><span class="tk">키 변경</span></button>
+      <button class="tab" data-mode="tempo"><span class="tl">ROAD Tempo</span><span class="tk">템포 변경</span></button>
+      <button class="tab" data-mode="edit"><span class="tl">ROAD Edit</span><span class="tk">편집</span></button>
+    </nav>
+    <div class="top-actions">
+      <button class="ver" id="verBtn" title="버전 · 업데이트"><i></i><span id="verText">v</span></button>
+      <div class="seg-icons" id="themeSeg">
+        <button data-theme="system" title="macOS 설정 따르기"><svg width="14" height="14" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6.2" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M8 1.8a6.2 6.2 0 0 1 0 12.4z" fill="currentColor"/></svg></button>
+        <button data-theme="light" title="라이트 모드"><svg width="14" height="14" viewBox="0 0 16 16"><circle cx="8" cy="8" r="3.2" fill="currentColor"/><g stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M8 1v1.8M8 13.2V15M1 8h1.8M13.2 8H15M3.05 3.05l1.27 1.27M11.68 11.68l1.27 1.27M3.05 12.95l1.27-1.27M11.68 4.32l1.27-1.27"/></g></svg></button>
+        <button data-theme="dark" title="다크 모드"><svg width="14" height="14" viewBox="0 0 16 16"><path d="M13.6 10.4A6 6 0 0 1 5.6 2.4a6 6 0 1 0 8 8z" fill="currentColor"/></svg></button>
+      </div>
+      <button class="icon-btn" id="settingsBtn" title="설정"><svg width="16" height="16" viewBox="0 0 16 16"><path fill="currentColor" d="M9.4 1l.35 1.7a5.6 5.6 0 0 1 1.3.75l1.65-.55 1.4 2.4-1.3 1.15a5.7 5.7 0 0 1 0 1.5l1.3 1.15-1.4 2.4-1.65-.55a5.6 5.6 0 0 1-1.3.75L9.4 15H6.6l-.35-1.7a5.6 5.6 0 0 1-1.3-.75l-1.65.55-1.4-2.4 1.3-1.15a5.7 5.7 0 0 1 0-1.5L1.9 6.9l1.4-2.4 1.65.55a5.6 5.6 0 0 1 1.3-.75L6.6 1zM8 5.6a2.4 2.4 0 1 0 0 4.8 2.4 2.4 0 0 0 0-4.8z"/></svg></button>
+      <button class="icon-btn" id="quitBtn" title="SROAD 종료"><svg width="16" height="16" viewBox="0 0 16 16"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M8 1.8v6"/><path d="M4.6 4a5.2 5.2 0 1 0 6.8 0"/></g></svg></button>
+    </div>
+  </header>
+
+  <aside class="lib" id="lib">
+    <div class="lib-head">
+      <div class="lib-title">라이브러리</div>
+      <div class="lib-count num" id="libCount"></div>
+      <div class="spacer"></div>
+      <button class="mini" id="addBtn" title="음원 추가 (⌘O)">＋ 추가</button>
+    </div>
+    <div class="lib-tools" id="libTools">
+      <label><input type="checkbox" id="checkAll"> 모두 선택</label>
+      <span class="spacer"></span>
+      <span id="checkedInfo"></span>
+    </div>
+    <div class="lib-list" id="libList"></div>
+  </aside>
+
+  <main class="stage" id="stage"></main>
+  <div class="banner" id="banner" hidden></div>
+
+  <aside class="side" id="side">
+    <div class="side-scroll">
+      <section class="box" id="exportBox"></section>
+      <section class="box" id="queueBox"></section>
+    </div>
+  </aside>
+
+  <footer class="player" id="player"></footer>
+  <div class="foot">made by. Nevertheless_D</div>
+</div>
+
+<div class="drop" id="drop"><div><svg width="64" height="64" viewBox="0 0 64 64"><circle cx="32" cy="32" r="30" fill="var(--accent)" opacity=".15"/><path d="M32 18v24M20 30l12 12 12-12" stroke="var(--accent)" stroke-width="5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg><b>여기에 놓으면 라이브러리에 추가돼요</b><span class="muted">MP3 · M4A · WAV · FLAC, 폴더째 넣어도 돼요</span></div></div>
+<div id="modalRoot"></div>
+<div class="toast" id="toast" hidden></div>
+<div class="ctx" id="ctx" hidden></div>
+<input type="file" id="filePick" multiple accept="audio/*,.mp3,.m4a,.wav,.flac,.aac,.aif,.aiff,.ogg,.opus" hidden>
+
+<script type="module" src="/js/main.js"></script>
+</body>
+</html>
