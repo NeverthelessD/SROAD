@@ -42,3 +42,8 @@ Things only a real Mac can confirm: osascript folder picker, Finder reveal, Chro
 
 The user plans a Windows version with the same features. The engine already builds for windows/amd64
 (`proc_windows.go`); still needed: a Windows launcher, ffmpeg download for Windows, Explorer integration, folder picker, and an update swap that works with a running .exe.
+
+## User-facing text
+
+Never mention GitHub (or the repo name) in anything the user sees — app screens, update messages, usage-guide images.
+Say "새 버전이 나오면 앱이 알아서 받아요" instead. The user asked for this for all of their apps.

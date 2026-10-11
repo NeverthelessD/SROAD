@@ -218,7 +218,6 @@ function fillUpdate() {
       <label class="switch-row"><input type="checkbox" data-u="auto" ${u.autoUpdate ? 'checked' : ''}><span class="switch"></span>자동 업데이트</label>
       <div class="note">켜 두면 앱을 켤 때와 6시간마다 새 버전을 확인하고, 진행 중인 작업이 끝난 뒤 알아서 설치해요. 새 버전은 다시 시작할 때 적용돼요.</div>
       ${u.canRollback ? `<div class="folder-sub"><span class="muted">문제가 생기면 이전 버전으로 돌아갈 수 있어요.</span><button class="link" data-u="rollback">v${esc(u.backupVersion)}으로 되돌리기</button></div>` : ''}
-      <div class="note">업데이트는 GitHub 저장소 <b>NeverthelessD/SROAD</b>에서 받아요.</div>
     </div>`;
 }
 document.addEventListener('click', async (e) => {
