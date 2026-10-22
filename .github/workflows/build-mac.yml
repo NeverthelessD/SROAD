@@ -3,6 +3,7 @@
 # 결과(빌드 기록 · 시험 결과 · 스크린샷 · 앱 zip)는 ci-results 브랜치에 올라가요.
 name: build-mac
 on:
+  workflow_dispatch:
   push:
     branches: [main]
     paths:

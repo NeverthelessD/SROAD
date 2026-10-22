@@ -12,7 +12,7 @@ VERSION="$(tr -d ' \n' < VERSION)"
 NOTES=()
 if [ "${1:-}" = "--notes" ]; then shift; NOTES=("$@"); fi
 
-git fetch -q origin ci-results
+git fetch -q origin +refs/heads/ci-results:refs/remotes/origin/ci-results
 TMP="$(mktemp -d)"
 git archive origin/ci-results | tar -x -C "$TMP"
 cat "$TMP/status.json"
