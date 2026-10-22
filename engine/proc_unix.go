@@ -29,3 +29,6 @@ func freeSpace(path string) int64 {
 	}
 	return int64(st.Bavail) * int64(st.Bsize)
 }
+
+// detachSelf moves this process into its own session, so it keeps running when the launcher ends.
+func detachSelf() { syscall.Setsid() }

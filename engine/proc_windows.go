@@ -25,3 +25,5 @@ func detach(cmd *exec.Cmd) {
 }
 
 func freeSpace(path string) int64 { return 0 }
+
+func detachSelf() {}

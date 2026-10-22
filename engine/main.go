@@ -65,6 +65,7 @@ type App struct {
 var app *App
 
 func main() {
+	envArgs()
 	log.SetFlags(log.LstdFlags)
 	home, _ := os.UserHomeDir()
 	support := os.Getenv("SROAD_SUPPORT")
@@ -78,6 +79,13 @@ func main() {
 			support = filepath.Join(home, ".sroad")
 		}
 	}
+	// macOS 27 대응: 실행기는 엔진을 '지킴이' 모드로 켜요 (supervise.go 참고)
+	if env("SUPERVISOR") == "1" {
+		os.MkdirAll(support, 0o755)
+		runSupervisor(support)
+		return
+	}
+	childGrace()
 	token := os.Getenv("SROAD_TOKEN")
 	if token == "" {
 		token = randID(16)
@@ -114,7 +122,8 @@ func main() {
 	app.port = ln.Addr().(*net.TCPAddr).Port
 	writeFileAtomic(filepath.Join(support, "token"), []byte(token), 0o600)
 	writeFileAtomic(filepath.Join(support, "port"), []byte(strconv.Itoa(app.port)), 0o644)
-	log.Printf("SROAD %s listening on %d", build, app.port)
+	writeFileAtomic(filepath.Join(support, "lastport"), []byte(strconv.Itoa(app.port)), 0o644) // 지킴이가 같은 주소로 다시 켤 때 써요
+	log.Printf("SROAD %s listening on %d (pid %d, 지킴이 %v)", build, app.port, os.Getpid(), env("CHILD") == "1")
 
 	go app.idleWatcher()
 	go app.upd.autoLoop()

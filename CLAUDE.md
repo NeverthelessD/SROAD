@@ -19,6 +19,23 @@ A "script-type" app: `SROAD.app/Contents/MacOS/SROAD` is a bash launcher (`app/l
 
 Design: five lane colours (Vocal #ff5c8a, Track #8a6cff, Pitch #2bc5e8, Tempo #ffb020, Edit #2fd39a), indigo night / lavender mist backgrounds, Pretendard + Unbounded (bundled). Footer must say `made by. Nevertheless_D`.
 
+## macOS 27: the engine must not be a child of the launcher (since 1.0.1)
+
+On macOS 27, when an app's main executable exits (our bash launcher, right after it opens the Chrome window),
+the system sends SIGTERM to every process that app started — `nohup`, `disown` and `setsid` do not protect them.
+Found with MSROAD's launcher.log on the user's Mac (macOS 27.0.1): the engine got SIGTERM ~1 s after the window opened.
+So:
+- The launcher builds `Support/bin/SROAD Engine.app` (LSBackgroundOnly helper bundle holding a copy of the engine) and starts it with
+  `open -g -j -n -a "SROAD Engine.app" --args --env SROAD_SUPERVISOR=1 --env SROAD_TOKEN=… …` (LaunchServices → its own app, not ours).
+  `open` can't pass env vars, so the engine reads `--env KEY=VALUE` args (`envArgs()`). If that fails or isn't ready in 8 s, it falls back to `nohup`.
+- `engine/supervise.go`: with SROAD_SUPERVISOR=1 the binary is a supervisor that runs the real engine as a child (SROAD_CHILD=1),
+  restarts it on a crash (same port via `lastport`, SROAD_RESTART=1 so work isn't wiped; max 5 in 5 min), and ends when the engine exits 0.
+  Safety net: for the first 20 s (`graceWindow`, tests: SROAD_GRACE_SEC) both supervisor and child swallow SIGTERM; after that SIGTERM means stop.
+  Gotcha: `signal.Ignore` can NOT be undone by `signal.Reset` — use Notify + drain, then Reset.
+- `launcher.log` in Support records each launch step and every engine exit (ask the user to drag it into the chat when debugging).
+Test on Linux with a fake `open` that `setsid nohup`s the helper's binary, then `kill -TERM` every `sroad-engine` right after launch.
+Never use `pkill -f sroad-engine` in tests — it matches your own shell's command line; use `pgrep -x`/`pkill -x`.
+
 ## Releasing an update (this is how the user's app updates itself)
 
 1. Make the change. Bump `VERSION` (semver, e.g. 1.0.1).
