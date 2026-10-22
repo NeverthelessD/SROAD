@@ -1,0 +1,45 @@
+{
+  "appearance": "light",
+  "defaultFolder": "",
+  "autoSave": true,
+  "revealAfter": false,
+  "autoUpdate": false,
+  "ui": {
+    "export": {
+      "format": "mp3",
+      "quality": "320"
+    },
+    "mode": "vocal",
+    "params": {
+      "pitch": {
+        "formants": true,
+        "semitones": 0
+      },
+      "tempo": {
+        "bpm": "",
+        "keepPitch": true,
+        "rate": 1
+      },
+      "track": {
+        "mix": [
+          "drums",
+          "bass",
+          "other"
+        ],
+        "mixOn": false,
+        "model": "htdemucs",
+        "stems": [
+          "vocals",
+          "drums",
+          "bass",
+          "other"
+        ]
+      },
+      "vocal": {
+        "instrumental": true,
+        "model": "htdemucs",
+        "vocals": true
+      }
+    }
+  }
+}

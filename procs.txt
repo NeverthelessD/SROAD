@@ -1,0 +1,5 @@
+--- A 실행 중
+ 2116     1 S    /Applications/SROAD.app/Contents/MacOS/SROAD
+ 2126  2116 S    /Users/runner/Library/Application Support/SROAD/bin/sroad-engine
+ 2127  2126 S    /Users/runner/Library/Application Support/SROAD/bin/sroad-engine
+--- D 종료 뒤

@@ -1,0 +1,19 @@
+PASS  A1 앱을 열면 엔진이 준비됨
+PASS  A2 엔진이 Dock 앱 방식으로 켜짐(shell=native)
+PASS  A3 화면 상태(/api/poll)에 Dock 앱 표시
+PASS  A5 앱 창(WKWebView)이 화면을 불러옴
+PASS  A6 엔진이 SROAD 앱의 자식 (앱 2116 → 지킴이 2126 → 엔진 2127)
+PASS  B1 다시 열기 뒤에도 앱·엔진 그대로
+PASS  C1 엔진 다시 켜짐
+PASS  C2 앱은 그대로
+PASS  D1 앱·엔진 모두 꺼짐
+PASS  D2 종료하면 임시 작업 폴더를 정리함
+PASS  E1 앱·엔진 모두 꺼짐
+PASS  F1 남은 엔진 없음
+PASS  G0 지난번과 같은 주소로 켜짐 (49165 → 49165)
+PASS  G1 새로 열린 앱이 엔진을 켬
+PASS  G2 앱이 새로 열림 (2332 → 2434)
+PASS  G3 업데이트 뒤에도 작업 폴더가 그대로
+PASS  H1 다시 열린 앱이 엔진을 켬
+PASS  H2 앱 하나만 떠 있음 (1개)
+PASS  H3 끝나면 모두 꺼짐
