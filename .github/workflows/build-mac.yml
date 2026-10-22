@@ -34,3 +34,4 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: bash scripts/ci-mac.sh
+# 다시 돌림: 2026-10-22T16:11:16Z
