@@ -294,11 +294,11 @@ export function openSettings() {
   });
 }
 
-export function showEnded(msg, waiting) {
+export function showEnded(msg, waiting, sub) {
   let el = $('.ended');
   if (!el) { el = document.createElement('div'); el.className = 'ended'; document.body.append(el); }
   el.innerHTML = `<svg width="64" height="64" viewBox="0 0 34 34"><rect x="2" y="12" width="4.6" height="12" rx="2.3" fill="#ff5c8a"/><rect x="8.6" y="6" width="4.6" height="22" rx="2.3" fill="#8a6cff"/><rect x="14.7" y="2" width="4.6" height="30" rx="2.3" fill="#2bc5e8"/><rect x="20.8" y="8" width="4.6" height="18" rx="2.3" fill="#ffb020"/><rect x="27.4" y="13" width="4.6" height="10" rx="2.3" fill="#2fd39a"/></svg>
-    <b>${esc(msg)}</b><span>${waiting ? '잠시만 기다려 주세요.' : '이 창은 닫아도 돼요. 다시 쓰려면 SROAD 앱을 실행하세요.'}</span>`;
+    <b>${esc(msg)}</b><span>${sub || (waiting ? '잠시만 기다려 주세요.' : '이 창은 닫아도 돼요. 다시 쓰려면 SROAD 앱을 실행하세요.')}</span>`;
 }
 
 export async function quitApp() {

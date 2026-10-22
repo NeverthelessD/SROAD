@@ -1,6 +1,6 @@
 // SROAD bootstrap: polling, mode switching, theme
 // made by. Nevertheless_D
-import { S, $, $$, api, emit, on, toast, saveUI, modalOpen } from './core.js';
+import { S, $, $$, api, emit, on, toast, saveUI, modalOpen, IS_SHELL } from './core.js';
 import { renderLibrary, focusItem, pickFiles } from './library.js';
 import { renderStage, tickResults, renderResults } from './modes.js';
 import { renderPlayer, toggle as togglePlayer } from './player.js';
@@ -56,6 +56,13 @@ async function poll() {
     const d = await api(`/api/poll?rev=${S.rev}`);
     fails = 0;
     S.build = d.build;
+    // 1.1.0 부터 SROAD 는 Dock 에 보이는 앱 창으로 열려요. 예전 Chrome 창이 남아 있으면 안내만 보여 주고 멈춰요.
+    if (d.shell === 'native' && !IS_SHELL) {
+      ended = true;
+      showEnded('SROAD가 새 모습으로 바뀌었어요', false, '이제 SROAD는 Dock에 아이콘이 있는 앱으로 열려요. 이 창은 닫아도 돼요.');
+      setTimeout(() => { try { window.close(); } catch { /* 닫을 수 없으면 안내만 보여 줘요 */ } }, 2500);
+      return;
+    }
     const prevReady = S.setup?.ready;
     S.setup = d.setup;
     S.update = d.update;

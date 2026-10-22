@@ -5,6 +5,8 @@ export const T = new URLSearchParams(location.search).get('t') || '';
 export const $ = (s, el = document) => el.querySelector(s);
 export const $$ = (s, el = document) => [...el.querySelectorAll(s)];
 export const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+// SROAD.app(Dock 앱) 창 안에서 열렸는지 (앱 창은 UA 에 SROADShell 을 붙여요)
+export const IS_SHELL = navigator.userAgent.includes('SROADShell');
 export const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 export const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
 

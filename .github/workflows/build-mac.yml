@@ -1,0 +1,35 @@
+# SROAD 맥 빌드 서버
+# main 에 앱 · 엔진 · 버전이 바뀌면, 실제 맥(Apple Silicon)에서 앱을 만들고(Swift + Go), 임시 서명하고, 여러 상황을 시험해요.
+# 결과(빌드 기록 · 시험 결과 · 스크린샷 · 앱 zip)는 ci-results 브랜치에 올라가요.
+name: build-mac
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'VERSION'
+      - 'app/**'
+      - 'engine/**'
+      - 'docs/SROAD_사용가이드.png'
+      - 'scripts/build-mac.sh'
+      - 'scripts/smoke-mac.sh'
+      - 'scripts/ci-mac.sh'
+      - '.github/workflows/build-mac.yml'
+permissions:
+  contents: write
+concurrency:
+  group: build-mac
+  cancel-in-progress: true
+jobs:
+  mac:
+    runs-on: macos-15
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.24'
+          cache: false
+      - name: Build, test on a real Mac, publish results
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: bash scripts/ci-mac.sh

@@ -5,9 +5,11 @@ Talk to them in Korean, in plain words. Never ask them to use Terminal; give the
 
 ## What it is
 
-A "script-type" app: `SROAD.app/Contents/MacOS/SROAD` is a bash launcher (`app/launcher.sh`). It copies
-`Contents/Resources/sroad-engine` (a Go binary) to `~/Library/Application Support/SROAD/bin/`, starts it on
-127.0.0.1 with a random token, and opens the UI in a Chrome `--app` window (or the default browser).
+Since 1.1.0 `SROAD.app` is a **real, visible Dock app**: `Contents/MacOS/SROAD` is a Swift/AppKit shell (`app/shell/main.swift`)
+with a WKWebView window. It copies `Contents/Resources/sroad-engine` (a Go binary) to `~/Library/Application Support/SROAD/bin/`,
+runs it as its own child (app → supervisor → engine) on 127.0.0.1 with a token (same port as last time, from `lastport`),
+and shows the UI in its window. The engine runs only while the app is open (⌘Q stops everything; closing the window keeps the app in the Dock).
+It can only be built on a Mac — see "Releasing an update".
 
 - `engine/` — Go, stdlib only. Embeds `web/` and `worker.py`.
   - `main.go` routes/settings · `library.go` uploads, ffprobe, peaks, streaming · `jobs.go` queue (one AI lane, one quick lane for saves/exports)
@@ -19,32 +21,35 @@ A "script-type" app: `SROAD.app/Contents/MacOS/SROAD` is a bash launcher (`app/l
 
 Design: five lane colours (Vocal #ff5c8a, Track #8a6cff, Pitch #2bc5e8, Tempo #ffb020, Edit #2fd39a), indigo night / lavender mist backgrounds, Pretendard + Unbounded (bundled). Footer must say `made by. Nevertheless_D`.
 
-## macOS 27: the engine must not be a child of the launcher (since 1.0.1)
+## macOS 27: Background App Activity (why 1.1.0 is a Dock app)
 
-On macOS 27, when an app's main executable exits (our bash launcher, right after it opens the Chrome window),
-the system sends SIGTERM to every process that app started — `nohup`, `disown` and `setsid` do not protect them.
-Found with MSROAD's launcher.log on the user's Mac (macOS 27.0.1): the engine got SIGTERM ~1 s after the window opened.
-So:
-- The launcher builds `Support/bin/SROAD Engine.app` (LSBackgroundOnly helper bundle holding a copy of the engine) and starts it with
-  `open -g -j -n -a "SROAD Engine.app" --args --env SROAD_SUPERVISOR=1 --env SROAD_TOKEN=… …` (LaunchServices → its own app, not ours).
-  `open` can't pass env vars, so the engine reads `--env KEY=VALUE` args (`envArgs()`). If that fails or isn't ready in 8 s, it falls back to `nohup`.
-- `engine/supervise.go`: with SROAD_SUPERVISOR=1 the binary is a supervisor that runs the real engine as a child (SROAD_CHILD=1),
-  restarts it on a crash (same port via `lastport`, SROAD_RESTART=1 so work isn't wiped; max 5 in 5 min), and ends when the engine exits 0.
-  Safety net: for the first 20 s (`graceWindow`, tests: SROAD_GRACE_SEC) both supervisor and child swallow SIGTERM; after that SIGTERM means stop.
-  Gotcha: `signal.Ignore` can NOT be undone by `signal.Reset` — use Notify + drain, then Reset.
-- `launcher.log` in Support records each launch step and every engine exit (ask the user to drag it into the chat when debugging).
-Test on Linux with a fake `open` that `setsid nohup`s the helper's binary, then `kill -TERM` every `sroad-engine` right after launch.
-Never use `pkill -f sroad-engine` in tests — it matches your own shell's command line; use `pgrep -x`/`pkill -x`.
+macOS 27 terminates processes that keep running after their app quits with no visible presence ("Background App Activity",
+System Settings › General › Login Items & Extensions), unless the app that launched them is in the Dock. 1.0.1 worked around this
+(hidden `SROAD Engine.app` helper + supervisor ignoring SIGTERM for 20 s); 1.1.0 removed that and follows the rule instead.
+**Never reintroduce hidden helpers or SIGTERM-ignoring.**
+- Shell env to the supervisor: `SROAD_SUPERVISOR=1 SROAD_SHELL=native SROAD_VIA=native SROAD_TOKEN SROAD_SUPPORT SROAD_APP SROAD_PARENT_PID SROAD_PORT(=lastport) SROAD_PORT_WAIT=1`.
+- `engine/supervise.go`: obeys SIGTERM/INT/HUP, stops when the app (PARENT_PID) disappears, restarts the engine only after a real crash
+  (same port, `SROAD_RESTART=1` so the work folder/library is kept; max 5 in 5 min). Engine exit 0 → supervisor exits → app quits.
+- Engine (`main.go`): no idle shutdown in native mode; `watchParent`; `watchSignals` cancels AI jobs + the installer (`Setup.Stop`) before exiting,
+  so no python/uv process is left running. `/api/ping` and `/api/poll` include `"shell"`.
+- Update restart (`update.go`): native → `lib.Save()`, write `Support/restart-requested`, `shutdown(true)`; the shell sees the marker and relaunches
+  itself with `NSWorkspace.openApplication` (env without SROAD_RESTART, plus `SROAD_RELAUNCHED=1` → the new engine gets `SROAD_RESTART=1` and keeps the work list).
+  Updating from 1.0.1: the old updater runs `Contents/MacOS/SROAD` directly with `SROAD_RESTART=1` → the shell relaunches itself properly.
+  An old Chrome window that reconnects sees `shell=native` and shows "SROAD가 새 모습으로 바뀌었어요" (`IS_SHELL` = UA contains `SROADShell`).
+- `launcher.log` in Support records shell (`[앱 pid]`, incl. "화면 열림") and supervisor steps (ask the user to drag it into the chat when debugging).
+`signal.Ignore` can NOT be undone by `signal.Reset`. Never use `pkill -f sroad-engine` in tests — it matches your own shell; use `pgrep -x`/`pkill -x`.
 
 ## Releasing an update (this is how the user's app updates itself)
 
-1. Make the change. Bump `VERSION` (semver, e.g. 1.0.1).
-2. `scripts/build.sh --notes "바뀐 점 1" "바뀐 점 2"` (Korean, user-facing). This writes `releases/SROAD-<v>.zip` and `releases/latest.json`.
-3. Commit everything (including the zip and latest.json) and push to `main`. Installed apps pick it up within 6 hours or via "업데이트 확인".
-4. Keep only the three newest zips in `releases/` (delete older ones in the same commit).
-5. Also send the user the zip (`dist/SROAD.zip`) for a fresh install if they ask.
-
-Never publish a `latest.json` whose zip is missing or whose `version.txt` differs — the app verifies both.
+The app needs Swift + codesign, so it is built on a real Mac by GitHub Actions (`.github/workflows/build-mac.yml` → `scripts/ci-mac.sh`
+→ `scripts/build-mac.sh` + `scripts/smoke-mac.sh`). The session proxy blocks the Actions API, so results are read via git:
+1. Make the change. Bump `VERSION` (semver). Commit and push to `main` (changes under app/, engine/, VERSION, docs png or the CI scripts trigger the build).
+2. Wait 5–10 min, then `git fetch origin +refs/heads/ci-results:refs/remotes/origin/ci-results` and read `status.json`, `results.txt`,
+   `build.log`, `smoke.log`, screenshots (`git show origin/ci-results:results.txt`). It must be for the current VERSION/commit with build=ok smoke=ok.
+3. `scripts/release.sh --notes "바뀐 점 1" "바뀐 점 2"` (Korean, user-facing) → verifies the CI result + sha256, writes `releases/SROAD-<v>.zip`,
+   `releases/latest.json` and `dist/SROAD.zip` (first install: folder with the app + usage guide). Keeps the three newest zips.
+4. Commit and push. Installed apps pick it up within 6 hours or via "업데이트 확인". Send the user `dist/SROAD.zip` for a fresh install if they ask.
+Never publish a `latest.json` whose zip is missing or whose `version.txt` differs — the app verifies both. Don't delete the `ci-results` branch.
 
 ## Testing without a Mac
 
@@ -53,7 +58,8 @@ Build for Linux (`go build -o /tmp/sroad-linux ./engine`) and run with env overr
 `SROAD_TEST_CHOOSE` (fake folder picker result), `SROAD_APP` (fake .app path for update tests), `SROAD_UPDATE_URL` (local latest.json).
 Drive the UI with Playwright (Chromium is preinstalled). MUSDB18 test songs with ground-truth stems are on Hugging Face (`danjacobellis/musdb`).
 
-Things only a real Mac can confirm: osascript folder picker, Finder reveal, Chrome app window, MPS acceleration, Gatekeeper prompts.
+The Mac CI smoke test covers launch, Dock reopen, crash restart, ⌘Q, quit button, app force-kill, update relaunch (incl. from 1.0.1).
+Things only the user's Mac can confirm: osascript folder picker, Finder reveal, MPS acceleration, Gatekeeper prompts, macOS 27 behaviour.
 
 ## Later
 

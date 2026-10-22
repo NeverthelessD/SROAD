@@ -66,6 +66,7 @@ type Setup struct {
 	info    map[string]any
 	ready   bool
 	modelMu sync.Mutex
+	cancel  context.CancelFunc
 }
 
 type setupStamp struct {
@@ -146,6 +147,17 @@ func (s *Setup) Ready() bool {
 	return s.ready
 }
 
+// Stop cancels a running install (앱을 종료할 때). Returns true if something was running.
+func (s *Setup) Stop() bool {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if s.cancel != nil {
+		s.cancel()
+		return true
+	}
+	return false
+}
+
 func (s *Setup) Running() bool {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -219,11 +231,16 @@ func (s *Setup) update(key string, fn func(*SetupStep)) {
 }
 
 func (s *Setup) run(force bool) {
-	ctx := context.Background()
+	ctx, cancel := context.WithCancel(context.Background())
+	s.mu.Lock()
+	s.cancel = cancel
+	s.mu.Unlock()
 	err := s.runSteps(ctx, force)
+	cancel()
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	s.running = false
+	s.cancel = nil
 	if err != nil {
 		s.err = err.Error()
 		for _, st := range s.steps {

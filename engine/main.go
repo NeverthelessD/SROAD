@@ -17,12 +17,14 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
+	"os/signal"
 	"path/filepath"
 	"runtime"
 	"strconv"
 	"strings"
 	"sync"
 	"sync/atomic"
+	"syscall"
 	"time"
 )
 
@@ -79,13 +81,12 @@ func main() {
 			support = filepath.Join(home, ".sroad")
 		}
 	}
-	// macOS 27 대응: 실행기는 엔진을 '지킴이' 모드로 켜요 (supervise.go 참고)
+	// SROAD.app(Dock 앱)은 엔진을 '지킴이' 모드로 켜요 (supervise.go 참고)
 	if env("SUPERVISOR") == "1" {
 		os.MkdirAll(support, 0o755)
 		runSupervisor(support)
 		return
 	}
-	childGrace()
 	token := os.Getenv("SROAD_TOKEN")
 	if token == "" {
 		token = randID(16)
@@ -126,6 +127,8 @@ func main() {
 	log.Printf("SROAD %s listening on %d (pid %d, 지킴이 %v)", build, app.port, os.Getpid(), env("CHILD") == "1")
 
 	go app.idleWatcher()
+	go app.watchParent()
+	go app.watchSignals()
 	go app.upd.autoLoop()
 	go app.jobs.run()
 	go app.jobs.runQuick()
@@ -152,7 +155,11 @@ func listen(pref string) net.Listener {
 // ---------------------------------------------------------------- lifecycle
 
 // 창을 닫고 10분 동안 아무 요청이 없고 진행 중인 작업도 없으면 스스로 종료합니다.
+// Dock 앱(SROAD.app)이 켠 엔진은 앱이 켜져 있는 동안 계속 켜 둬요. 앱을 종료하면 엔진도 함께 꺼져요.
 func (a *App) idleWatcher() {
+	if nativeShell() {
+		return
+	}
 	for range time.Tick(15 * time.Second) {
 		idle := time.Now().Unix() - a.lastSeen.Load()
 		if idle > 600 && !a.jobs.Busy() && !a.setup.Running() && !a.upd.Busy() {
@@ -161,8 +168,37 @@ func (a *App) idleWatcher() {
 	}
 }
 
+// nativeShell: Dock 에 보이는 맥 앱(app/shell/main.swift)이 엔진을 켰는지
+func nativeShell() bool { return env("SHELL") == "native" }
+
+// watchParent: 지킴이(부모)가 사라지면 엔진도 끝나요 — 혼자 남아 몰래 돌지 않게
+func (a *App) watchParent() {
+	if env("CHILD") != "1" {
+		return
+	}
+	ppid := os.Getppid()
+	for range time.Tick(2 * time.Second) {
+		if os.Getppid() != ppid {
+			log.Printf("지킴이가 사라져서 끝내요")
+			a.shutdown(false)
+		}
+	}
+}
+
+// watchSignals: 종료 신호를 받으면 AI 작업 · 설치 중인 프로그램까지 정리하고 끝나요 (남아서 계속 돌지 않게)
+func (a *App) watchSignals() {
+	ch := make(chan os.Signal, 2)
+	signal.Notify(ch, syscall.SIGTERM, syscall.SIGINT, syscall.SIGHUP)
+	s := <-ch
+	log.Printf("종료 신호(%v)를 받아 정리하고 끝내요", s)
+	a.shutdown(false)
+}
+
 func (a *App) shutdown(keepWork bool) {
 	a.jobs.CancelAll()
+	if a.setup.Stop() || a.jobs.Busy() {
+		time.Sleep(500 * time.Millisecond) // 진행 중이던 AI 작업 · 설치 프로그램이 꺼질 시간을 줘요
+	}
 	if keepWork {
 		a.lib.Save()
 	} else {
@@ -256,7 +292,7 @@ func (a *App) routes() http.Handler {
 	}
 
 	api("/api/ping", func(w http.ResponseWriter, r *http.Request) {
-		writeJSON(w, map[string]any{"ok": true, "build": build})
+		writeJSON(w, map[string]any{"ok": true, "build": build, "shell": env("SHELL")})
 	})
 	api("/api/quit", func(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, map[string]any{"ok": true})
@@ -342,6 +378,7 @@ func (a *App) handlePoll(w http.ResponseWriter, r *http.Request) {
 		"jobs":   a.jobs.Snapshot(),
 		"setup":  a.setup.State(),
 		"update": a.upd.State(),
+		"shell":  env("SHELL"),
 	}
 	rev, items := a.lib.SnapshotIfChanged(since)
 	out["rev"] = rev

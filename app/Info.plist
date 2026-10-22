@@ -32,6 +32,19 @@
 	<string>public.app-category.music</string>
 	<key>NSHighResolutionCapable</key>
 	<true/>
+	<key>NSPrincipalClass</key>
+	<string>NSApplication</string>
+	<!-- 앱 화면은 이 맥 안(127.0.0.1)의 엔진에서만 불러와요 -->
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSAllowsLocalNetworking</key>
+		<true/>
+	</dict>
+	<!-- 엔진을 깔끔하게 끄고 나서 종료해야 해서, 시스템이 말없이 앱을 끄지 않게 해요 -->
+	<key>NSSupportsAutomaticTermination</key>
+	<false/>
+	<key>NSSupportsSuddenTermination</key>
+	<false/>
 	<key>NSHumanReadableCopyright</key>
 	<string>made by. Nevertheless_D</string>
 </dict>
