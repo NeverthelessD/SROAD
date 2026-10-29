@@ -1,5 +1,11 @@
 # SROAD
 
+## ⬇️ 앱 받기
+
+**[SROAD.zip 받기 (macOS)](https://github.com/NeverthelessD/SROAD/raw/main/download/SROAD.zip)**
+
+항상 가장 최신판이에요. zip 안에 앱과 사용 가이드가 함께 들어 있어요.
+
 AI 음원 분리 · 편집 스튜디오 (macOS, Apple Silicon) — made by. Nevertheless_D
 
 | 메뉴 | 하는 일 |
@@ -17,7 +23,7 @@ AI 음원 분리 · 편집 스튜디오 (macOS, Apple Silicon) — made by. Neve
 
 ## 설치
 
-1. [`releases/`](releases) 폴더에서 가장 최신 `SROAD-x.y.z.zip`을 받아 압축을 풀어요.
+1. 위의 **앱 받기**에서 `SROAD.zip`을 받아 압축을 풀어요. (안에 앱과 사용 가이드가 들어 있어요)
 2. `SROAD.app`을 **응용 프로그램** 폴더로 옮겨요. (업데이트가 동작하려면 꼭 옮겨 주세요)
 3. 처음 열 때 경고가 뜨면 **시스템 설정 → 개인정보 보호 및 보안 → "그래도 열기"**.
 4. 앱 화면에서 **AI 엔진 설치 시작**을 누르면 약 300MB를 받아요 (처음 한 번만).

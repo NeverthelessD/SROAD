@@ -70,3 +70,6 @@ The user plans a Windows version with the same features. The engine already buil
 
 Never mention GitHub (or the repo name) in anything the user sees — app screens, update messages, usage-guide images.
 Say "새 버전이 나오면 앱이 알아서 받아요" instead. The user asked for this for all of their apps.
+
+- **2026-10-29 내려받기용 zip (사용자 요청)**: 저장소 `download/` 폴더에 `SROAD.zip`(앱 + 사용 가이드)를 올리고, README 맨 위 '앱 받기' 링크(`raw/main/download/SROAD.zip`)로 바로 받게 했어요. 예전 버전 zip 은 지웠어요 (저장소 `releases/` 에도 업데이트용 최신판만).
+- **GitHub 에는 늘 최신판 zip 1개만**: 업데이트를 내보낼 때마다 `scripts/publish-download.sh` 가 앱 + 가이드 zip 을 `download/` 에 정해진 이름으로 바꿔 넣고 다른 파일은 지워요(release.sh 가 자동으로 불러요. GitHub 릴리스 페이지는 이 작업 환경에서 만들 수 없어 저장소 폴더를 써요). `releases/` 의 업데이트용 zip 도 현재 버전만 남겨요 — 설치된 앱은 latest.json 이 가리키는 zip 만 받고, '되돌리기'는 맥 안의 백업을 써서 예전 zip 이 필요 없어요.

@@ -4,6 +4,7 @@
 #   2) scripts/release.sh --notes "바뀐 점 1" "바뀐 점 2"
 #      → ci-results 의 결과가 지금 VERSION · 커밋과 맞고 build=ok · smoke=ok 인지 확인한 뒤
 #        releases/SROAD-<v>.zip · releases/latest.json · dist/SROAD.zip(처음 설치용)을 만들어요
+#        예전 버전 zip 은 지우고(최신판만), 처음 설치용 zip 은 download/ 에 최신판 1개만 둬요 (scripts/publish-download.sh)
 #   3) 커밋 · 푸시
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
@@ -36,6 +37,7 @@ mkdir -p releases dist
 cp "$TMP/SROAD-$VERSION.zip" "releases/SROAD-$VERSION.zip"
 cp "$TMP/SROAD-first-install.zip" dist/SROAD.zip
 python3 scripts/feed.py releases/latest.json "$VERSION" "releases/SROAD-$VERSION.zip" "${NOTES[@]+"${NOTES[@]}"}"
-ls -1t releases/SROAD-*.zip | tail -n +4 | xargs -r rm -f
+find releases -maxdepth 1 -name "SROAD-[0-9]*.zip" ! -name "SROAD-$VERSION.zip" -delete   # 업데이트용 zip 도 최신판만
+bash scripts/publish-download.sh "dist/SROAD.zip"   # 내려받기용 zip(앱 + 가이드): download/ 에 최신판만
 rm -rf "$TMP"
 echo "✔ releases/SROAD-$VERSION.zip · latest.json · dist/SROAD.zip — 커밋 · 푸시하면 설치된 앱들이 받아요"
