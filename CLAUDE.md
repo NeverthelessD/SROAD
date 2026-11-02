@@ -15,7 +15,7 @@ It can only be built on a Mac — see "Releasing an update".
   - `main.go` routes/settings · `library.go` uploads, ffprobe, peaks, streaming · `jobs.go` queue (one AI lane, one quick lane for saves/exports)
   - `encode.go` ffmpeg output (mp3 libmp3lame, m4a aac_at/ALAC, wav, flac; 128/192/320/lossless)
   - `setup.go` first-run installer: ffmpeg (martin-riedl), uv → Python 3.11 → torch 2.5.1 + demucs 4.0.1 (no-deps) + pedalboard, Demucs weights from dl.fbaipublicfiles.com. Bump `envVersion` when Python packages change (users get a re-install prompt).
-  - `update.go` auto-update from `releases/latest.json` in this repo (raw.githubusercontent.com), sha256 check, swaps the .app (backup kept in Support/backup for rollback), restart keeps port+token so the open window reloads.
+  - `update.go` auto-update from `releases/latest.json` in this repo (raw.githubusercontent.com), sha256 check, swaps the .app (backup kept in Support/backup.noindex (hidden from Spotlight; old Support/backup is migrated on start; lsregister -u after swap/rollback) for rollback), restart keeps port+token so the open window reloads.
 - `engine/worker.py` — Demucs separation (MPS first, CPU fallback) and Rubber Band pitch/tempo. Prints JSON lines.
 - `engine/web/js/` — ES modules: `core` (state/api/helpers) · `library` · `modes` (Vocal/Track/Pitch/Tempo) · `player` (A/B compare) · `editor` (segment-list editor) · `panels` (save settings, queue, setup, updates, settings) · `main`.
 
