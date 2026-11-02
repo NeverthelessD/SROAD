@@ -1,0 +1,2 @@
+f7efd9c5a42cc288fb18eceecc5764132bda8fd747c6e93b3d4fc50860c255e1  /Users/runner/work/SROAD/SROAD/ci-out/SROAD-1.1.1.zip
+850db1772081314a4b834a6ee4cb96500b1d1a9059c135d68003ad9788e4f66a  /Users/runner/work/SROAD/SROAD/ci-out/SROAD-first-install.zip
